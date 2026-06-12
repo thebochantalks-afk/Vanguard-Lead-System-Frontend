@@ -5,7 +5,7 @@ export default function LeadFilters({ filters, onChange }) {
   };
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-6">
       <div>
         <label className="block text-xs font-medium text-muted mb-1 uppercase">Tag</label>
         <select
