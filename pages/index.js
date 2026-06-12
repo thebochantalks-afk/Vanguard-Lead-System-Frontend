@@ -3,14 +3,14 @@ import axios from 'axios';
 import StatsCard from '@/components/StatsCard';
 import LeadTable from '@/components/LeadTable';
 import LineChart from '@/components/LineChart';
-import TagBadge from '@/components/TagBadge';
+import { useClient } from '@/components/ClientContext';
 import { 
   ChartBarIcon, 
   FireIcon, 
   CalendarIcon, 
   ArrowTrendingUpIcon,
-  ClockIcon,
-  PhoneIcon
+  PhoneIcon,
+  BuildingOfficeIcon
 } from '@heroicons/react/24/outline';
 import { useRouter } from 'next/router';
 
@@ -30,14 +30,21 @@ export default function Dashboard() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
+  const { selectedClient, isAdmin } = useClient();
 
   useEffect(() => {
     const fetchData = async () => {
+      setLoading(true);
       try {
-        const res = await axios.get('/api/proxy/dashboard');
+        let url = '/api/proxy/dashboard';
+        if (selectedClient && !isAdmin) {
+          url = `/api/proxy/dashboard/${selectedClient.id}`;
+        }
+        const res = await axios.get(url);
         setData(res.data);
       } catch (err) {
         console.error('Failed to fetch dashboard data', err);
+        // Demo fallback
         setData({
           stats: {
             totalLeads: 124,
@@ -46,13 +53,13 @@ export default function Dashboard() {
             conversionRate: '6.4%'
           },
           chartData: [
-            { date: '2023-10-01', leads: 4 },
-            { date: '2023-10-02', leads: 7 },
-            { date: '2023-10-03', leads: 5 },
-            { date: '2023-10-04', leads: 10 },
-            { date: '2023-10-05', leads: 12 },
-            { date: '2023-10-06', leads: 8 },
-            { date: '2023-10-07', leads: 15 },
+            { date: 'Oct 01', leads: 4 },
+            { date: 'Oct 02', leads: 7 },
+            { date: 'Oct 03', leads: 5 },
+            { date: 'Oct 04', leads: 10 },
+            { date: 'Oct 05', leads: 12 },
+            { date: 'Oct 06', leads: 8 },
+            { date: 'Oct 07', leads: 15 },
           ],
           recentLeads: [
             { id: 1, name: 'Rahul Sharma', phone: '+91 98765 43210', tag: 'HOT', status: 'qualified', source: 'Meta Ads', last_contact: '2023-10-07T10:00:00Z', followup_count: 3 },
@@ -66,7 +73,23 @@ export default function Dashboard() {
     };
 
     fetchData();
-  }, []);
+  }, [selectedClient, isAdmin]);
+
+  if (!selectedClient) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 text-center">
+        <BuildingOfficeIcon className="h-16 w-16 text-muted mb-4" />
+        <h2 className="text-xl font-semibold text-primary mb-2">Welcome to Vanguard Growth</h2>
+        <p className="text-muted mb-6 max-w-md">Select a client from the dropdown above or create a new one.</p>
+        <button 
+          onClick={() => router.push('/onboarding')}
+          className="bg-accent text-white px-6 py-2.5 rounded-lg font-medium hover:bg-accent/90 transition-colors"
+        >
+          ➕ Onboard New Client
+        </button>
+      </div>
+    );
+  }
 
   if (loading) {
     return <div className="flex items-center justify-center h-[60vh] text-muted">Loading Dashboard...</div>;
@@ -74,28 +97,21 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6 sm:space-y-8">
-      <div>
-        <h1 className="text-xl sm:text-2xl font-bold text-primary">Dashboard Overview</h1>
-        <p className="text-sm text-muted">Welcome back, here is what's happening today.</p>
-      </div>
-
       {/* KPI Cards */}
       <div className="grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-4">
-        <StatsCard title="Total Leads" value={data.stats.totalLeads} icon={ChartBarIcon} color="#FF4D1C" />
-        <StatsCard title="Hot Leads" value={data.stats.hotLeads} icon={FireIcon} color="#FF4D1C" />
-        <StatsCard title="Appointments" value={data.stats.appointments} icon={CalendarIcon} color="#22C55E" />
-        <StatsCard title="Conv. Rate" value={data.stats.conversionRate} icon={ArrowTrendingUpIcon} color="#F5A623" />
+        <StatsCard title="Total Leads" value={data?.stats?.totalLeads || data?.total_leads || 0} icon={ChartBarIcon} color="#FF4D1C" />
+        <StatsCard title="Hot Leads" value={data?.stats?.hotLeads || data?.hot_leads || 0} icon={FireIcon} color="#FF4D1C" />
+        <StatsCard title="Appointments" value={data?.stats?.appointments || data?.appointments_this_week || 0} icon={CalendarIcon} color="#22C55E" />
+        <StatsCard title="Conv. Rate" value={data?.stats?.conversionRate || (data?.conversion_rate ? data.conversion_rate + '%' : '0%')} icon={ArrowTrendingUpIcon} color="#F5A623" />
       </div>
 
-      {/* Two column layout: Chart + Appointments */}
+      {/* Two column: Chart + Appointments */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Chart (spans 2 cols) */}
         <div className="lg:col-span-2">
           <h2 className="text-sm sm:text-lg font-semibold text-primary mb-3 sm:mb-4">Lead Trends (Last 30 Days)</h2>
-          <LineChart data={data.chartData} xKey="date" yKey="leads" />
+          <LineChart data={data?.chartData || data?.daily_leads || []} xKey="date" yKey={data?.chartData ? "leads" : "count"} />
         </div>
 
-        {/* Today's Appointments */}
         <div>
           <div className="flex items-center justify-between mb-3 sm:mb-4">
             <h2 className="text-sm sm:text-lg font-semibold text-primary">Today's Schedule</h2>
@@ -109,9 +125,7 @@ export default function Dashboard() {
               <div key={idx} className="p-3 sm:p-4 hover:bg-white/5 transition-colors">
                 <div className="flex items-start space-x-3">
                   <div className="flex-shrink-0 w-16 sm:w-20">
-                    <span className="text-xs font-semibold text-accent bg-accent/10 px-2 py-1 rounded-md inline-block">
-                      {apt.time}
-                    </span>
+                    <span className="text-xs font-semibold text-accent bg-accent/10 px-2 py-1 rounded-md inline-block">{apt.time}</span>
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-medium text-primary truncate">{apt.name}</p>
@@ -130,7 +144,6 @@ export default function Dashboard() {
 
       {/* Hot Leads + Recent Leads */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Hot Leads - Needs Your Call */}
         <div>
           <h2 className="text-sm sm:text-lg font-semibold text-primary mb-3 sm:mb-4 flex items-center">
             <FireIcon className="h-4 w-4 sm:h-5 sm:w-5 text-accent mr-2" />
@@ -155,29 +168,22 @@ export default function Dashboard() {
               </div>
             ))}
             <div className="p-3 sm:p-4 text-center">
-              <button 
-                onClick={() => router.push('/leads')}
-                className="text-xs text-accent hover:underline"
-              >
+              <button onClick={() => router.push('/leads')} className="text-xs text-accent hover:underline">
                 View all hot leads →
               </button>
             </div>
           </div>
         </div>
 
-        {/* Recent Leads (spans 2 cols) */}
         <div className="lg:col-span-2">
           <div className="flex items-center justify-between mb-3 sm:mb-4">
             <h2 className="text-sm sm:text-lg font-semibold text-primary">Recent Leads</h2>
-            <button 
-              onClick={() => router.push('/leads')}
-              className="text-xs sm:text-sm font-medium text-accent hover:underline"
-            >
+            <button onClick={() => router.push('/leads')} className="text-xs sm:text-sm font-medium text-accent hover:underline">
               View all
             </button>
           </div>
           <LeadTable 
-            leads={data.recentLeads} 
+            leads={data?.recentLeads || data?.recent_leads || []} 
             onLeadClick={(lead) => router.push(`/leads/${lead.id}`)} 
           />
         </div>
