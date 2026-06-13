@@ -10,14 +10,16 @@ export function AuthProvider({ children }) {
   const router = useRouter();
 
   useEffect(() => {
-    // Check localStorage for saved session
-    const saved = localStorage.getItem('vg_auth');
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        setUser(parsed);
-      } catch (e) {
-        localStorage.removeItem('vg_auth');
+    // Only run on client side
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('vg_auth');
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          setUser(parsed);
+        } catch (e) {
+          localStorage.removeItem('vg_auth');
+        }
       }
     }
     setLoading(false);

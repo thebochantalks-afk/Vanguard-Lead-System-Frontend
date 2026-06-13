@@ -4,6 +4,11 @@ import { useRouter } from 'next/router';
 
 LoginPage.noAuth = true;
 
+// Prevent static generation - this page needs browser APIs
+export async function getServerSideProps() {
+  return { props: {} };
+}
+
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
