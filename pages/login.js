@@ -93,7 +93,7 @@ export default function LoginPage() {
 
           <div className="mt-6 pt-4 border-t border-border">
             <p className="text-[10px] text-muted text-center">
-              Agency Owner: admin@vanguard.com / admin123
+              Powered by Vanguard Growth
             </p>
           </div>
         </div>
