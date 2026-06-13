@@ -9,7 +9,7 @@ import { useEffect } from 'react';
 function AuthGuard({ children }) {
   const { user, loading } = useAuth();
   const router = useRouter();
-  const publicPages = ['/login'];
+  const publicPages = ['/login', '/admin'];
 
   useEffect(() => {
     if (!loading && !user && !publicPages.includes(router.pathname)) {
@@ -24,14 +24,13 @@ function AuthGuard({ children }) {
 }
 
 export default function App({ Component, pageProps }) {
-  // Login page doesn't need Layout or ClientProvider
-  if (Component.getLayout) {
-    return Component.getLayout(<Component {...pageProps} />);
-  }
-
-  // Special case: login page without auth guard
+  // Login page: wrap in AuthProvider only, no Layout
   if (Component.noAuth) {
-    return <Component {...pageProps} />;
+    return (
+      <AuthProvider>
+        <Component {...pageProps} />
+      </AuthProvider>
+    );
   }
 
   return (
