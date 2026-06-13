@@ -18,6 +18,11 @@ const PLAN_LABELS = { starter: 'Starter', growth: 'Growth', enterprise: 'Enterpr
 const STATUS_COLORS = { active: 'text-success', expired: 'text-red-400', cancelled: 'text-muted' };
 const PAYMENT_COLORS = { paid: 'text-success', pending: 'text-warm', overdue: 'text-red-400' };
 
+// Prevent static generation
+export async function getServerSideProps() {
+  return { props: {} };
+}
+
 export default function AdminDashboard() {
   const { user, isAdmin, logout } = useAuth();
   const router = useRouter();
