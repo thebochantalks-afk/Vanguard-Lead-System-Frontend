@@ -1,22 +1,24 @@
 import { clsx } from 'clsx';
 
 export default function TagBadge({ tag }) {
+  const currentTag = tag?.toUpperCase() || 'UNQUALIFIED';
+
   const styles = {
-    HOT: 'bg-accent/20 text-accent',
-    WARM: 'bg-warm/20 text-warm',
-    COLD: 'bg-cold/20 text-cold',
-    UNQUALIFIED: 'bg-gray-500/20 text-gray-400',
+    HOT: 'badge-hot',
+    WARM: 'badge-warm',
+    COLD: 'badge-cold',
   };
 
-  const currentTag = tag?.toUpperCase() || 'UNQUALIFIED';
-  const style = styles[currentTag] || styles.UNQUALIFIED;
+  const style = styles[currentTag];
 
-  return (
-    <span className={clsx(
-      'inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold',
-      style
-    )}>
-      {currentTag}
-    </span>
-  );
+  // Fallback for unknown tags
+  if (!style) {
+    return (
+      <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-2xs font-bold uppercase tracking-wider bg-white/[0.05] text-muted border border-white/[0.08]">
+        {currentTag}
+      </span>
+    );
+  }
+
+  return <span className={style}>{currentTag}</span>;
 }

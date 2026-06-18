@@ -3,6 +3,7 @@ import Sidebar from './Sidebar';
 import ClientSwitcher from './ClientSwitcher';
 import { useClient } from './ClientContext';
 import { useAuth } from './AuthContext';
+import { Bars3Icon } from '@heroicons/react/24/outline';
 
 export default function Layout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -20,12 +21,12 @@ export default function Layout({ children }) {
     <div className="flex h-screen bg-background text-primary overflow-hidden">
       {/* Mobile overlay */}
       {sidebarOpen && (
-        <div className="fixed inset-0 z-30 bg-black/50 lg:hidden" onClick={() => setSidebarOpen(false)} />
+        <div className="fixed inset-0 z-30 bg-black/60 backdrop-blur-sm lg:hidden" onClick={() => setSidebarOpen(false)} />
       )}
 
       {/* Sidebar */}
       <div className={`
-        fixed inset-y-0 left-0 z-40 w-64 transform transition-transform duration-300 ease-in-out
+        fixed inset-y-0 left-0 z-40 w-64 transform transition-all duration-300 ease-out
         lg:relative lg:translate-x-0
         ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
       `}>
@@ -34,19 +35,19 @@ export default function Layout({ children }) {
 
       {/* Main content */}
       <main className="flex-1 overflow-y-auto focus:outline-none min-w-0">
-        {/* Mobile/tablet header */}
-        <div className="sticky top-0 z-20 bg-background/95 backdrop-blur border-b border-border">
-          <div className="flex items-center justify-between px-3 sm:px-4 py-2.5 sm:py-3">
+        {/* Sticky header */}
+        <div className="sticky top-0 z-20 backdrop-blur-xl border-b border-white/[0.06] bg-background/80">
+          <div className="flex items-center justify-between px-3 sm:px-6 py-3">
             <div className="flex items-center space-x-3">
               <button
                 onClick={() => setSidebarOpen(true)}
-                className="p-1.5 text-muted hover:text-primary rounded-md hover:bg-surface lg:hidden"
+                className="p-2 text-muted hover:text-primary rounded-lg hover:bg-white/[0.04] lg:hidden transition-colors"
               >
-                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                </svg>
+                <Bars3Icon className="h-5 w-5" />
               </button>
-              <span className="text-base sm:text-lg font-bold text-accent hidden sm:block">Vanguard Growth</span>
+              <span className="text-sm font-bold text-accent hidden sm:block font-display">
+                Vanguard Growth
+              </span>
             </div>
 
             {/* Client switcher — only for admin */}
@@ -56,17 +57,23 @@ export default function Layout({ children }) {
               </div>
             )}
 
+            {/* Spacer for right side */}
             <div className="w-8 sm:w-10" />
           </div>
         </div>
 
-        <div className="py-4 sm:py-6">
-          <div className="mx-auto max-w-7xl px-3 sm:px-6 md:px-8">
+        {/* Page content */}
+        <div className="py-5 sm:py-8">
+          <div className="mx-auto max-w-5xl px-3 sm:px-6 md:px-8">
             {/* Client header — show for non-admin */}
             {isClient && selectedClient && selectedClient !== 'admin' && (
-              <div className="mb-4 sm:mb-6">
-                <h1 className="text-lg sm:text-xl font-bold text-primary">{selectedClient.business_name || 'Dashboard'}</h1>
-                <p className="text-xs sm:text-sm text-muted">{selectedClient.industry || 'Your business'} — AI-powered lead management</p>
+              <div className="mb-6 animate-fade-in">
+                <h1 className="text-xl sm:text-2xl font-bold text-primary font-display">
+                  {selectedClient.business_name || 'Dashboard'}
+                </h1>
+                <p className="text-sm text-muted mt-0.5">
+                  {selectedClient.industry || 'Your business'} — AI-powered lead management
+                </p>
               </div>
             )}
             {children}

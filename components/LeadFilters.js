@@ -5,14 +5,14 @@ export default function LeadFilters({ filters, onChange }) {
   };
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-6">
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 p-5 sm:p-6">
       <div>
-        <label className="block text-xs font-medium text-muted mb-1 uppercase">Tag</label>
+        <label className="block text-2xs font-medium text-muted mb-1.5 uppercase tracking-wider">Tag</label>
         <select
           name="tag"
           value={filters.tag || ''}
           onChange={handleChange}
-          className="w-full bg-surface border border-border rounded-lg px-3 py-2 text-sm text-primary focus:ring-accent focus:border-accent outline-none"
+          className="select-premium"
         >
           <option value="">All Tags</option>
           <option value="HOT">HOT</option>
@@ -21,12 +21,12 @@ export default function LeadFilters({ filters, onChange }) {
         </select>
       </div>
       <div>
-        <label className="block text-xs font-medium text-muted mb-1 uppercase">Status</label>
+        <label className="block text-2xs font-medium text-muted mb-1.5 uppercase tracking-wider">Status</label>
         <select
           name="status"
           value={filters.status || ''}
           onChange={handleChange}
-          className="w-full bg-surface border border-border rounded-lg px-3 py-2 text-sm text-primary focus:ring-accent focus:border-accent outline-none"
+          className="select-premium"
         >
           <option value="">All Statuses</option>
           <option value="new">New</option>
@@ -38,12 +38,12 @@ export default function LeadFilters({ filters, onChange }) {
         </select>
       </div>
       <div>
-        <label className="block text-xs font-medium text-muted mb-1 uppercase">Source</label>
+        <label className="block text-2xs font-medium text-muted mb-1.5 uppercase tracking-wider">Source</label>
         <select
           name="source"
           value={filters.source || ''}
           onChange={handleChange}
-          className="w-full bg-surface border border-border rounded-lg px-3 py-2 text-sm text-primary focus:ring-accent focus:border-accent outline-none"
+          className="select-premium"
         >
           <option value="">All Sources</option>
           <option value="Meta Ads">Meta Ads</option>
@@ -52,14 +52,14 @@ export default function LeadFilters({ filters, onChange }) {
         </select>
       </div>
       <div>
-        <label className="block text-xs font-medium text-muted mb-1 uppercase">Search</label>
+        <label className="block text-2xs font-medium text-muted mb-1.5 uppercase tracking-wider">Search</label>
         <input
           type="text"
           name="search"
-          placeholder="Name or Phone..."
+          placeholder="Name or phone..."
           value={filters.search || ''}
           onChange={handleChange}
-          className="w-full bg-surface border border-border rounded-lg px-3 py-2 text-sm text-primary focus:ring-accent focus:border-accent outline-none"
+          className="input-premium"
         />
       </div>
     </div>

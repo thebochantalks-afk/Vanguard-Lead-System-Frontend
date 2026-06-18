@@ -4,6 +4,7 @@ import axios from 'axios';
 import TagBadge from '@/components/TagBadge';
 import StatusBadge from '@/components/StatusBadge';
 import ConversationThread from '@/components/ConversationThread';
+import GlassCard from '@/components/GlassCard';
 import { 
   PhoneIcon, 
   EnvelopeIcon, 
@@ -71,51 +72,94 @@ export default function LeadDetailPage() {
     }
   };
 
-  if (loading) return <div className="flex items-center justify-center py-20 text-muted">Loading lead details...</div>;
-  if (!lead) return <div className="flex items-center justify-center py-20 text-muted">Lead not found.</div>;
+  if (loading) {
+    return (
+      <div className="space-y-6 animate-fade-in">
+        <div className="skeleton h-4 w-32" />
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-1 space-y-6">
+            <div className="glass-card p-6 space-y-4">
+              <div className="skeleton h-6 w-40" />
+              <div className="skeleton h-4 w-24" />
+              <div className="space-y-3 pt-4">
+                <div className="skeleton h-4 w-full" />
+                <div className="skeleton h-4 w-3/4" />
+                <div className="skeleton h-4 w-5/6" />
+              </div>
+            </div>
+          </div>
+          <div className="lg:col-span-2">
+            <div className="glass-card h-[500px]" />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!lead) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 text-center animate-fade-in">
+        <div className="w-14 h-14 rounded-xl bg-white/[0.04] flex items-center justify-center mb-4">
+          <ChatBubbleLeftEllipsisIcon className="h-7 w-7 text-muted" />
+        </div>
+        <p className="text-lg font-semibold text-primary font-display mb-1">Lead not found</p>
+        <p className="text-sm text-muted mb-6">This lead may have been removed or doesn't exist.</p>
+        <button onClick={() => router.push('/leads')} className="btn-secondary text-xs">
+          Back to Leads
+        </button>
+      </div>
+    );
+  }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fade-in">
       <button 
         onClick={() => router.back()}
-        className="flex items-center text-sm text-muted hover:text-primary transition-colors"
+        className="inline-flex items-center text-sm text-muted hover:text-primary transition-colors group"
       >
-        <ArrowLeftIcon className="h-4 w-4 mr-2" />
+        <ArrowLeftIcon className="h-4 w-4 mr-2 group-hover:-translate-x-0.5 transition-transform" />
         Back to Leads
       </button>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Left Column: Info & Controls */}
         <div className="lg:col-span-1 space-y-6">
-          <div className="bg-surface border border-border rounded-xl p-6">
-            <h2 className="text-xl font-bold text-primary mb-1">{lead.name}</h2>
-            <p className="text-sm text-muted mb-6">Captured {new Date(lead.created_at).toLocaleDateString()}</p>
+          {/* Profile Card */}
+          <GlassCard variant="accent" glow glowColor="#FF4D1C">
+            <h2 className="text-xl font-bold text-primary font-display mb-1">{lead.name}</h2>
+            <p className="text-sm text-muted mb-6">Captured {new Date(lead.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
             
-            <div className="space-y-4">
+            <div className="space-y-3">
               <div className="flex items-center text-sm">
-                <PhoneIcon className="h-4 w-4 text-muted mr-3" />
+                <div className="w-8 h-8 rounded-lg bg-white/[0.04] flex items-center justify-center mr-3 shrink-0">
+                  <PhoneIcon className="h-4 w-4 text-muted" />
+                </div>
                 <span className="text-primary">{lead.phone}</span>
               </div>
               <div className="flex items-center text-sm">
-                <EnvelopeIcon className="h-4 w-4 text-muted mr-3" />
-                <span className="text-primary">{lead.email || 'No email provided'}</span>
+                <div className="w-8 h-8 rounded-lg bg-white/[0.04] flex items-center justify-center mr-3 shrink-0">
+                  <EnvelopeIcon className="h-4 w-4 text-muted" />
+                </div>
+                <span className="text-primary">{lead.email || <span className="text-muted/50">No email provided</span>}</span>
               </div>
               <div className="flex items-center text-sm">
-                <ChatBubbleLeftEllipsisIcon className="h-4 w-4 text-muted mr-3" />
+                <div className="w-8 h-8 rounded-lg bg-white/[0.04] flex items-center justify-center mr-3 shrink-0">
+                  <ChatBubbleLeftEllipsisIcon className="h-4 w-4 text-muted" />
+                </div>
                 <span className="text-primary">Source: {lead.source}</span>
               </div>
             </div>
 
-            <div className="mt-8 pt-8 border-t border-border space-y-6">
+            <div className="mt-8 pt-6 border-t border-white/[0.06] space-y-6">
               <div>
-                <label className="block text-xs font-medium text-muted mb-2 uppercase">Current Tag</label>
+                <label className="block text-2xs font-medium text-muted mb-2 uppercase tracking-wider">Current Tag</label>
                 <div className="flex items-center justify-between">
                   <TagBadge tag={lead.tag} />
                   <select 
                     value={lead.tag} 
                     onChange={(e) => handleUpdate({ tag: e.target.value })}
                     disabled={updating}
-                    className="bg-background border border-border rounded px-2 py-1 text-xs text-primary outline-none"
+                    className="select-premium w-28 text-xs"
                   >
                     <option value="HOT">HOT</option>
                     <option value="WARM">WARM</option>
@@ -125,14 +169,14 @@ export default function LeadDetailPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-muted mb-2 uppercase">Status</label>
+                <label className="block text-2xs font-medium text-muted mb-2 uppercase tracking-wider">Status</label>
                 <div className="flex items-center justify-between">
                   <StatusBadge status={lead.status} />
                   <select 
                     value={lead.status} 
                     onChange={(e) => handleUpdate({ status: e.target.value })}
                     disabled={updating}
-                    className="bg-background border border-border rounded px-2 py-1 text-xs text-primary outline-none"
+                    className="select-premium w-32 text-xs"
                   >
                     <option value="new">New</option>
                     <option value="contacted">Contacted</option>
@@ -144,69 +188,76 @@ export default function LeadDetailPage() {
                 </div>
               </div>
             </div>
-          </div>
+          </GlassCard>
 
-          <div className="bg-surface border border-border rounded-xl p-6">
-            <h3 className="text-sm font-semibold text-primary mb-4">Internal Notes</h3>
+          {/* Internal Notes */}
+          <GlassCard>
+            <h3 className="text-sm font-semibold text-primary mb-3">Internal Notes</h3>
             <textarea 
               value={note}
               onChange={(e) => setNote(e.target.value)}
               placeholder="Add a private note..."
-              className="w-full bg-background border border-border rounded-lg p-3 text-sm text-primary h-24 focus:ring-1 focus:ring-accent outline-none"
+              className="input-premium h-24 resize-none"
             />
-            <button className="mt-2 w-full bg-accent text-white rounded-lg py-2 text-sm font-medium hover:bg-accent/90 transition-colors">
+            <button className="btn-primary w-full mt-3 text-xs">
               Save Note
             </button>
-          </div>
+          </GlassCard>
 
-          <div className="bg-surface border border-border rounded-xl p-6">
+          {/* Appointment Card */}
+          <GlassCard variant="accent">
             <h3 className="text-sm font-semibold text-primary mb-4">Set Appointment</h3>
-            <div className="flex items-center bg-background border border-border rounded-lg p-3">
-              <CalendarIcon className="h-5 w-5 text-muted mr-2" />
+            <div className="flex items-center input-premium">
+              <CalendarIcon className="h-4 w-4 text-muted mr-2 shrink-0" />
               <input 
                 type="datetime-local" 
                 className="bg-transparent text-sm text-primary outline-none w-full"
               />
             </div>
-            <button className="mt-3 w-full border border-accent text-accent rounded-lg py-2 text-sm font-medium hover:bg-accent/10 transition-colors">
+            <button className="btn-secondary w-full mt-3 text-xs">
               Confirm Appointment
             </button>
-          </div>
+          </GlassCard>
         </div>
 
-        {/* Right Column: Conversation */}
+        {/* Right Column: Conversation + Timeline */}
         <div className="lg:col-span-2 space-y-6">
-          <div className="bg-surface border border-border rounded-xl flex flex-col h-full">
-            <div className="p-4 border-b border-border flex justify-between items-center">
+          {/* Conversation */}
+          <GlassCard noPadding>
+            <div className="p-4 border-b border-white/[0.06] flex justify-between items-center">
               <h3 className="text-sm font-semibold text-primary">Conversation History</h3>
-              <div className="flex space-x-2">
-                <span className="flex items-center text-[10px] text-muted">
-                  <span className="h-2 w-2 rounded-full bg-success mr-1"></span> AI Active
-                </span>
-              </div>
+              <span className="inline-flex items-center text-2xs text-muted gap-1.5">
+                <span className="h-1.5 w-1.5 rounded-full bg-success animate-pulse-soft" />
+                AI Active
+              </span>
             </div>
             <ConversationThread messages={lead.messages} />
-          </div>
+          </GlassCard>
 
-          <div className="bg-surface border border-border rounded-xl p-6">
+          {/* Timeline */}
+          <GlassCard>
             <h3 className="text-sm font-semibold text-primary mb-4">Lead Timeline</h3>
             <div className="space-y-4">
               {lead.timeline.map((item, idx) => (
                 <div key={idx} className="flex space-x-3">
-                  <div className="relative">
-                    <div className="h-2 w-2 rounded-full bg-accent mt-1.5"></div>
+                  <div className="relative flex flex-col items-center">
+                    <div className="h-2.5 w-2.5 rounded-full bg-accent ring-2 ring-accent/20"></div>
                     {idx !== lead.timeline.length - 1 && (
-                      <div className="absolute top-4 left-[3px] w-[2px] h-full bg-border"></div>
+                      <div className="absolute top-4 bottom-0 w-[2px] bg-white/[0.06]"></div>
                     )}
                   </div>
-                  <div>
+                  <div className="pb-4">
                     <p className="text-sm text-primary">{item.event}</p>
-                    <p className="text-[10px] text-muted">{new Date(item.created_at).toLocaleString()}</p>
+                    <p className="text-2xs text-muted mt-0.5">
+                      {new Date(item.created_at).toLocaleString('en-IN', { 
+                        day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' 
+                      })}
+                    </p>
                   </div>
                 </div>
               ))}
             </div>
-          </div>
+          </GlassCard>
         </div>
       </div>
     </div>

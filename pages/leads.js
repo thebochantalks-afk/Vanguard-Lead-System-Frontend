@@ -3,6 +3,9 @@ import axios from 'axios';
 import { useRouter } from 'next/router';
 import LeadTable from '@/components/LeadTable';
 import LeadFilters from '@/components/LeadFilters';
+import GlassCard from '@/components/GlassCard';
+import SkeletonLoader from '@/components/SkeletonLoader';
+import { FunnelIcon } from '@heroicons/react/24/outline';
 
 export default function LeadsPage() {
   const [leads, setLeads] = useState([]);
@@ -43,37 +46,81 @@ export default function LeadsPage() {
     setFilters(newFilters);
   };
 
+  const hasActiveFilters = filters.tag || filters.status || filters.source || filters.search;
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fade-in">
+      {/* Page header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-primary">Leads</h1>
-          <p className="text-muted">Manage and track your lead pipeline.</p>
+          <h1 className="text-xl sm:text-2xl font-bold text-primary font-display">Leads</h1>
+          <p className="text-sm text-muted mt-0.5">Manage and track your lead pipeline</p>
         </div>
+        <button className="btn-secondary text-xs flex items-center gap-1.5">
+          <FunnelIcon className="h-3.5 w-3.5" />
+          Export
+        </button>
       </div>
 
-      <LeadFilters filters={filters} onChange={handleFilterChange} />
+      {/* Filters */}
+      <GlassCard variant="accent" noPadding>
+        <LeadFilters filters={filters} onChange={handleFilterChange} />
+      </GlassCard>
 
+      {/* Data table */}
       {loading ? (
-        <div className="flex items-center justify-center py-20 text-muted">Loading leads...</div>
+        <GlassCard noPadding>
+          <div className="p-5 sm:p-6">
+            <SkeletonLoader variant="table-row" rows={5} />
+          </div>
+        </GlassCard>
+      ) : leads.length === 0 ? (
+        <GlassCard>
+          <div className="flex flex-col items-center justify-center py-12 text-center">
+            <div className="w-14 h-14 rounded-xl bg-white/[0.04] flex items-center justify-center mb-4">
+              <FunnelIcon className="h-7 w-7 text-muted" />
+            </div>
+            <p className="text-lg font-semibold text-primary font-display mb-1">No leads found</p>
+            <p className="text-sm text-muted max-w-sm">
+              {hasActiveFilters 
+                ? 'No leads match your current filters. Try adjusting them.'
+                : 'Leads from your Meta Ads campaigns will appear here once captured.'}
+            </p>
+            {hasActiveFilters && (
+              <button 
+                onClick={() => setFilters({ tag: '', status: '', source: '', search: '' })}
+                className="btn-secondary mt-4 text-xs"
+              >
+                Clear Filters
+              </button>
+            )}
+          </div>
+        </GlassCard>
       ) : (
-        <LeadTable 
-          leads={leads} 
-          onLeadClick={(lead) => router.push(`/leads/${lead.id}`)} 
-        />
+        <GlassCard variant="hover" noPadding>
+          <LeadTable 
+            leads={leads} 
+            onLeadClick={(lead) => router.push(`/leads/${lead.id}`)} 
+          />
+        </GlassCard>
       )}
       
-      <div className="flex items-center justify-between mt-4">
-        <p className="text-sm text-muted">Showing {leads.length} leads</p>
-        <div className="flex space-x-2">
-          <button className="px-4 py-2 text-sm font-medium text-muted bg-surface border border-border rounded-md hover:text-primary transition-colors disabled:opacity-50" disabled>
-            Previous
-          </button>
-          <button className="px-4 py-2 text-sm font-medium text-muted bg-surface border border-border rounded-md hover:text-primary transition-colors disabled:opacity-50" disabled>
-            Next
-          </button>
+      {/* Pagination footer */}
+      {!loading && leads.length > 0 && (
+        <div className="flex items-center justify-between">
+          <p className="text-sm text-muted">
+            Showing <span className="text-primary font-medium">{leads.length}</span> leads
+          </p>
+          <div className="flex space-x-2">
+            <button className="px-4 py-2 text-sm font-medium text-muted bg-white/[0.04] border border-white/[0.08] rounded-lg hover:text-primary hover:border-white/[0.12] transition-colors disabled:opacity-50" disabled>
+              Previous
+            </button>
+            <button className="px-4 py-2 text-sm font-medium text-muted bg-white/[0.04] border border-white/[0.08] rounded-lg hover:text-primary hover:border-white/[0.12] transition-colors disabled:opacity-50" disabled>
+              Next
+            </button>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
