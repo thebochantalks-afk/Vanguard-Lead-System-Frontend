@@ -26,8 +26,9 @@ export default function LeadDetailPage() {
 
     const fetchLead = async () => {
       try {
-        const res = await axios.get(`/api/proxy/leads/${id}`);
+        const res = await axios.get(`/api/proxy/leads/detail/${id}`);
         setLead(res.data);
+        if (res.data.notes) setNote(res.data.notes);
       } catch (err) {
         console.error('Failed to fetch lead details', err);
         // Fallback for demo
@@ -37,7 +38,7 @@ export default function LeadDetailPage() {
           phone: '+91 98765 43210',
           email: 'rahul@example.com',
           source: 'Meta Ads',
-          tag: 'HOT',
+          ai_tag: 'HOT',
           status: 'qualified',
           created_at: '2023-10-05T08:30:00Z',
           messages: [
@@ -111,6 +112,8 @@ export default function LeadDetailPage() {
     );
   }
 
+  const currentTag = lead.ai_tag || lead.tag || 'UNKNOWN';
+
   return (
     <div className="space-y-6 animate-fade-in">
       <button 
@@ -154,16 +157,17 @@ export default function LeadDetailPage() {
               <div>
                 <label className="block text-2xs font-medium text-muted mb-2 uppercase tracking-wider">Current Tag</label>
                 <div className="flex items-center justify-between">
-                  <TagBadge tag={lead.tag} />
+                  <TagBadge tag={currentTag} />
                   <select 
-                    value={lead.tag} 
-                    onChange={(e) => handleUpdate({ tag: e.target.value })}
+                    value={currentTag} 
+                    onChange={(e) => handleUpdate({ ai_tag: e.target.value })}
                     disabled={updating}
                     className="select-premium w-28 text-xs"
                   >
                     <option value="HOT">HOT</option>
                     <option value="WARM">WARM</option>
                     <option value="COLD">COLD</option>
+                    <option value="UNKNOWN">UNKNOWN</option>
                   </select>
                 </div>
               </div>
@@ -179,11 +183,11 @@ export default function LeadDetailPage() {
                     className="select-premium w-32 text-xs"
                   >
                     <option value="new">New</option>
-                    <option value="contacted">Contacted</option>
-                    <option value="qualified">Qualified</option>
-                    <option value="appointment_booked">Appt. Booked</option>
-                    <option value="closed">Closed</option>
+                    <option value="active">Active</option>
+                    <option value="appointment_set">Appt. Set</option>
+                    <option value="converted">Converted</option>
                     <option value="dead">Dead</option>
+                    <option value="cancelled">Cancelled</option>
                   </select>
                 </div>
               </div>
@@ -211,6 +215,8 @@ export default function LeadDetailPage() {
               <CalendarIcon className="h-4 w-4 text-muted mr-2 shrink-0" />
               <input 
                 type="datetime-local" 
+                value={lead.appointment_date ? new Date(lead.appointment_date).toISOString().slice(0, 16) : ''}
+                onChange={(e) => handleUpdate({ appointment_date: e.target.value, status: 'appointment_set' })}
                 className="bg-transparent text-sm text-primary outline-none w-full"
               />
             </div>

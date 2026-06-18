@@ -39,7 +39,7 @@ export default function Dashboard() {
     const fetchData = async () => {
       setLoading(true);
       try {
-        let url = '/api/proxy/dashboard';
+        let url = '/api/proxy/dashboard/admin';
         if (selectedClient && !isAdmin) {
           url = `/api/proxy/dashboard/${selectedClient.id}`;
         }
@@ -65,9 +65,9 @@ export default function Dashboard() {
             { date: 'Oct 07', leads: 15 },
           ],
           recentLeads: [
-            { id: 1, name: 'Rahul Sharma', phone: '+91 98765 43210', tag: 'HOT', status: 'qualified', source: 'Meta Ads', last_contact: '2023-10-07T10:00:00Z', followup_count: 3 },
-            { id: 2, name: 'Priya Patel', phone: '+91 87654 32109', tag: 'WARM', status: 'contacted', source: 'Meta Ads', last_contact: '2023-10-06T15:30:00Z', followup_count: 1 },
-            { id: 3, name: 'Amit Kumar', phone: '+91 76543 21098', tag: 'COLD', status: 'new', source: 'Meta Ads', last_contact: null, followup_count: 0 },
+            { id: 1, name: 'Rahul Sharma', phone: '+91 98765 43210', ai_tag: 'HOT', status: 'qualified', source: 'Meta Ads', last_message_at: '2023-10-07T10:00:00Z', follow_up_count: 3 },
+            { id: 2, name: 'Priya Patel', phone: '+91 87654 32109', ai_tag: 'WARM', status: 'contacted', source: 'Meta Ads', last_message_at: '2023-10-06T15:30:00Z', follow_up_count: 1 },
+            { id: 3, name: 'Amit Kumar', phone: '+91 76543 21098', ai_tag: 'COLD', status: 'new', source: 'Meta Ads', last_message_at: null, follow_up_count: 0 },
           ]
         });
       } finally {

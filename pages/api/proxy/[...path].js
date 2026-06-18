@@ -2,7 +2,7 @@ import axios from 'axios';
 
 export default async function handler(req, res) {
   const { path } = req.query;
-  const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+  const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
   
   const url = `${backendUrl}/${path.join('/')}`;
   
@@ -14,6 +14,7 @@ export default async function handler(req, res) {
       params: req.query,
       headers: {
         'Content-Type': 'application/json',
+        ...(req.headers.authorization && { Authorization: req.headers.authorization }),
       },
     });
     
