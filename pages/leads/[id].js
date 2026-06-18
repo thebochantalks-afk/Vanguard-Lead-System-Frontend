@@ -25,8 +25,9 @@ export default function LeadDetailPage() {
 
     const fetchLead = async () => {
       try {
-        const res = await axios.get(`/api/proxy/leads/${id}`);
+        const res = await axios.get(`/api/proxy/leads/detail/${id}`);
         setLead(res.data);
+        if (res.data.notes) setNote(res.data.notes);
       } catch (err) {
         console.error('Failed to fetch lead details', err);
         // Fallback for demo
@@ -36,7 +37,7 @@ export default function LeadDetailPage() {
           phone: '+91 98765 43210',
           email: 'rahul@example.com',
           source: 'Meta Ads',
-          tag: 'HOT',
+          ai_tag: 'HOT',
           status: 'qualified',
           created_at: '2023-10-05T08:30:00Z',
           messages: [
@@ -71,8 +72,14 @@ export default function LeadDetailPage() {
     }
   };
 
+  const handleSaveNote = () => {
+    handleUpdate({ notes: note });
+  };
+
   if (loading) return <div className="flex items-center justify-center py-20 text-muted">Loading lead details...</div>;
   if (!lead) return <div className="flex items-center justify-center py-20 text-muted">Lead not found.</div>;
+
+  const currentTag = lead.ai_tag || lead.tag || 'UNKNOWN';
 
   return (
     <div className="space-y-6">
@@ -110,16 +117,17 @@ export default function LeadDetailPage() {
               <div>
                 <label className="block text-xs font-medium text-muted mb-2 uppercase">Current Tag</label>
                 <div className="flex items-center justify-between">
-                  <TagBadge tag={lead.tag} />
+                  <TagBadge tag={currentTag} />
                   <select 
-                    value={lead.tag} 
-                    onChange={(e) => handleUpdate({ tag: e.target.value })}
+                    value={currentTag} 
+                    onChange={(e) => handleUpdate({ ai_tag: e.target.value })}
                     disabled={updating}
                     className="bg-background border border-border rounded px-2 py-1 text-xs text-primary outline-none"
                   >
                     <option value="HOT">HOT</option>
                     <option value="WARM">WARM</option>
                     <option value="COLD">COLD</option>
+                    <option value="UNKNOWN">UNKNOWN</option>
                   </select>
                 </div>
               </div>
@@ -135,11 +143,11 @@ export default function LeadDetailPage() {
                     className="bg-background border border-border rounded px-2 py-1 text-xs text-primary outline-none"
                   >
                     <option value="new">New</option>
-                    <option value="contacted">Contacted</option>
-                    <option value="qualified">Qualified</option>
-                    <option value="appointment_booked">Appt. Booked</option>
-                    <option value="closed">Closed</option>
+                    <option value="active">Active</option>
+                    <option value="appointment_set">Appt. Set</option>
+                    <option value="converted">Converted</option>
                     <option value="dead">Dead</option>
+                    <option value="cancelled">Cancelled</option>
                   </select>
                 </div>
               </div>
@@ -154,8 +162,12 @@ export default function LeadDetailPage() {
               placeholder="Add a private note..."
               className="w-full bg-background border border-border rounded-lg p-3 text-sm text-primary h-24 focus:ring-1 focus:ring-accent outline-none"
             />
-            <button className="mt-2 w-full bg-accent text-white rounded-lg py-2 text-sm font-medium hover:bg-accent/90 transition-colors">
-              Save Note
+            <button 
+              onClick={handleSaveNote}
+              disabled={updating}
+              className="mt-2 w-full bg-accent text-white rounded-lg py-2 text-sm font-medium hover:bg-accent/90 transition-colors disabled:opacity-50"
+            >
+              {updating ? 'Saving...' : 'Save Note'}
             </button>
           </div>
 
@@ -165,12 +177,12 @@ export default function LeadDetailPage() {
               <CalendarIcon className="h-5 w-5 text-muted mr-2" />
               <input 
                 type="datetime-local" 
+                value={lead.appointment_date ? new Date(lead.appointment_date).toISOString().slice(0, 16) : ''}
+                onChange={(e) => handleUpdate({ appointment_date: e.target.value, status: 'appointment_set' })}
                 className="bg-transparent text-sm text-primary outline-none w-full"
               />
             </div>
-            <button className="mt-3 w-full border border-accent text-accent rounded-lg py-2 text-sm font-medium hover:bg-accent/10 transition-colors">
-              Confirm Appointment
-            </button>
+            <p className="mt-2 text-[10px] text-muted text-center">Selecting a date will automatically mark status as "Appt. Set"</p>
           </div>
         </div>
 
@@ -181,32 +193,35 @@ export default function LeadDetailPage() {
               <h3 className="text-sm font-semibold text-primary">Conversation History</h3>
               <div className="flex space-x-2">
                 <span className="flex items-center text-[10px] text-muted">
-                  <span className="h-2 w-2 rounded-full bg-success mr-1"></span> AI Active
+                  <span className={`h-2 w-2 rounded-full mr-1 ${lead.status === 'active' || lead.status === 'new' ? 'bg-success' : 'bg-muted'}`}></span> 
+                  {lead.status === 'active' || lead.status === 'new' ? 'AI Active' : 'AI Paused'}
                 </span>
               </div>
             </div>
-            <ConversationThread messages={lead.messages} />
+            <ConversationThread messages={lead.messages || []} />
           </div>
 
-          <div className="bg-surface border border-border rounded-xl p-6">
-            <h3 className="text-sm font-semibold text-primary mb-4">Lead Timeline</h3>
-            <div className="space-y-4">
-              {lead.timeline.map((item, idx) => (
-                <div key={idx} className="flex space-x-3">
-                  <div className="relative">
-                    <div className="h-2 w-2 rounded-full bg-accent mt-1.5"></div>
-                    {idx !== lead.timeline.length - 1 && (
-                      <div className="absolute top-4 left-[3px] w-[2px] h-full bg-border"></div>
-                    )}
+          {lead.timeline && lead.timeline.length > 0 && (
+            <div className="bg-surface border border-border rounded-xl p-6">
+              <h3 className="text-sm font-semibold text-primary mb-4">Lead Timeline</h3>
+              <div className="space-y-4">
+                {lead.timeline.map((item, idx) => (
+                  <div key={idx} className="flex space-x-3">
+                    <div className="relative">
+                      <div className="h-2 w-2 rounded-full bg-accent mt-1.5"></div>
+                      {idx !== lead.timeline.length - 1 && (
+                        <div className="absolute top-4 left-[3px] w-[2px] h-full bg-border"></div>
+                      )}
+                    </div>
+                    <div>
+                      <p className="text-sm text-primary">{item.event}</p>
+                      <p className="text-[10px] text-muted">{new Date(item.created_at).toLocaleString()}</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-sm text-primary">{item.event}</p>
-                    <p className="text-[10px] text-muted">{new Date(item.created_at).toLocaleString()}</p>
-                  </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
     </div>

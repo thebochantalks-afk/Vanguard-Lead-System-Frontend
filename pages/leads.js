@@ -3,6 +3,8 @@ import axios from 'axios';
 import { useRouter } from 'next/router';
 import LeadTable from '@/components/LeadTable';
 import LeadFilters from '@/components/LeadFilters';
+import { useClient } from '@/components/ClientContext';
+import { BuildingOfficeIcon } from '@heroicons/react/24/outline';
 
 export default function LeadsPage() {
   const [leads, setLeads] = useState([]);
@@ -14,22 +16,48 @@ export default function LeadsPage() {
     search: '',
   });
   const router = useRouter();
+  const { selectedClient, isAdmin } = useClient();
 
   useEffect(() => {
     const fetchLeads = async () => {
+      if (!selectedClient) return;
+
       setLoading(true);
       try {
-        const res = await axios.get('/api/proxy/leads', { params: filters });
-        setLeads(res.data);
+        let url = `/api/proxy/leads/${selectedClient.id}`;
+        if (isAdmin) {
+          // If we had a global leads route for admin, we'd use it here.
+          // For now, let's assume admin view also needs a client selected or we show nothing.
+          // The backend admin dashboard handles aggregated stats, but individual leads 
+          // usually belong to a client.
+          url = '/api/proxy/leads/admin'; // Assuming this might exist or we handle it
+        }
+        
+        // Actually, looking at the backend, there is no /leads/admin.
+        // If isAdmin is true, maybe we should still require a client to be selected 
+        // to see THEIR leads, OR we need a new backend route for all leads.
+        
+        // For now, let's stick to the client_id if selectedClient is an object.
+        if (selectedClient.id) {
+          url = `/api/proxy/leads/${selectedClient.id}`;
+        } else if (isAdmin) {
+          // If admin is selected but no specific client, we might need a "Global Leads" route.
+          // Since it's not in the backend yet, let's just return.
+          setLeads([]);
+          setLoading(false);
+          return;
+        }
+
+        const res = await axios.get(url, { params: filters });
+        // The backend returns { leads: [], total: 0, ... }
+        setLeads(res.data.leads || []);
       } catch (err) {
         console.error('Failed to fetch leads', err);
         // Fallback for demo
         setLeads([
-          { id: 1, name: 'Rahul Sharma', phone: '+91 98765 43210', tag: 'HOT', status: 'qualified', source: 'Meta Ads', last_contact: '2023-10-07T10:00:00Z', followup_count: 3 },
-          { id: 2, name: 'Priya Patel', phone: '+91 87654 32109', tag: 'WARM', status: 'contacted', source: 'Meta Ads', last_contact: '2023-10-06T15:30:00Z', followup_count: 1 },
-          { id: 3, name: 'Amit Kumar', phone: '+91 76543 21098', tag: 'COLD', status: 'new', source: 'Meta Ads', last_contact: null, followup_count: 0 },
-          { id: 4, name: 'Sneha Gupta', phone: '+91 65432 10987', tag: 'HOT', status: 'appointment_booked', source: 'Meta Ads', last_contact: '2023-10-07T11:00:00Z', followup_count: 5 },
-          { id: 5, name: 'Vikram Singh', phone: '+91 54321 09876', tag: 'COLD', status: 'dead', source: 'Direct', last_contact: '2023-10-01T09:00:00Z', followup_count: 2 },
+          { id: 1, name: 'Rahul Sharma', phone: '+91 98765 43210', ai_tag: 'HOT', status: 'qualified', source: 'Meta Ads', last_message_at: '2023-10-07T10:00:00Z', follow_up_count: 3 },
+          { id: 2, name: 'Priya Patel', phone: '+91 87654 32109', ai_tag: 'WARM', status: 'contacted', source: 'Meta Ads', last_message_at: '2023-10-06T15:30:00Z', follow_up_count: 1 },
+          { id: 3, name: 'Amit Kumar', phone: '+91 76543 21098', ai_tag: 'COLD', status: 'new', source: 'Meta Ads', last_message_at: null, follow_up_count: 0 },
         ]);
       } finally {
         setLoading(false);
@@ -37,11 +65,21 @@ export default function LeadsPage() {
     };
 
     fetchLeads();
-  }, [filters]);
+  }, [filters, selectedClient, isAdmin]);
 
   const handleFilterChange = (newFilters) => {
     setFilters(newFilters);
   };
+
+  if (!selectedClient) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 text-center">
+        <BuildingOfficeIcon className="h-16 w-16 text-muted mb-4" />
+        <h2 className="text-xl font-semibold text-primary mb-2">Select a Client</h2>
+        <p className="text-muted mb-6 max-w-md">Please select a client from the dropdown to view their lead pipeline.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

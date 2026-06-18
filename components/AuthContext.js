@@ -17,6 +17,9 @@ export function AuthProvider({ children }) {
         try {
           const parsed = JSON.parse(saved);
           setUser(parsed);
+          if (parsed.token) {
+            axios.defaults.headers.common['Authorization'] = `Bearer ${parsed.token}`;
+          }
         } catch (e) {
           localStorage.removeItem('vg_auth');
         }
@@ -24,6 +27,14 @@ export function AuthProvider({ children }) {
     }
     setLoading(false);
   }, []);
+
+  useEffect(() => {
+    if (user?.token) {
+      axios.defaults.headers.common['Authorization'] = `Bearer ${user.token}`;
+    } else {
+      delete axios.defaults.headers.common['Authorization'];
+    }
+  }, [user]);
 
   const login = async (email, password) => {
     try {
